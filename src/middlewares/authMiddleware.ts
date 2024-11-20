@@ -26,6 +26,5 @@ export const authMiddleware = (
     } catch (error) {
         console.error("Authentication error.", error);
         res.status(401).json({ error: "Invalid or expired token." });
-        return;
     }
 };
