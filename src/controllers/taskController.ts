@@ -104,4 +104,27 @@ const taskController = {
             res.status(500).json({ message: "Internal server error." });
         }
     },
+
+    async getTaskHistory(req: Request, res: Response): Promise<void> {
+        const userId = (req.user as CustomJwtPayload)?.id;
+
+        if (!userId) {
+            res.status(401).json({ message: "Unauthorized." });
+            return;
+        }
+
+        try {
+            const history = await db
+                .select()
+                .from(tasks)
+                .where(and(eq(tasks.userId, userId), eq(tasks.status, true)));
+
+            res.json(history);
+        } catch (error) {
+            console.error("Error fetching task history: ", error);
+            res.status(500).json({ message: "Internal server error." });
+        }
+    },
 };
+
+export default taskController;
