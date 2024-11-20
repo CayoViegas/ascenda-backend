@@ -5,6 +5,7 @@ import { users } from "../models/user";
 import { and, eq } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 import { friends } from "../models/friend";
+import { CustomJwtPayload } from "../types/customJwtPayload";
 
 const userController = {
     async register(req: Request, res: Response): Promise<void> {
@@ -88,16 +89,18 @@ const userController = {
         }
     },
 
-    async addFriend(req: Request, res: Response) {
+    async addFriend(req: Request, res: Response): Promise<void> {
         const { friendId } = req.body;
-        const userId = req.user?.id;
+        const userId = (req.user as CustomJwtPayload)?.id;
 
         if (!friendId) {
-            return res.status(400).json({ error: "Friend ID is required." });
+            res.status(400).json({ error: "Friend ID is required." });
+            return;
         }
 
         if (!userId) {
-            return res.status(401).json({ error: "Unauthorized." });
+            res.status(401).json({ error: "Unauthorized." });
+            return;
         }
 
         try {
@@ -107,7 +110,8 @@ const userController = {
                 .where(eq(users.id, friendId));
 
             if (friend.length === 0) {
-                return res.status(404).json({ error: "Friend not found." });
+                res.status(404).json({ error: "Friend not found." });
+                return;
             }
 
             const existingFriendship = await db
@@ -121,7 +125,8 @@ const userController = {
                 );
 
             if (existingFriendship.length > 0) {
-                return res.status(400).json({ error: "Friend already added." });
+                res.status(400).json({ error: "Friend already added." });
+                return;
             }
 
             await db.insert(friends).values({
@@ -132,15 +137,17 @@ const userController = {
             res.json({ message: "Friend added successfully." });
         } catch (error) {
             console.error("Error adding friend:", error);
-            return res.status(500).json({ error: "Internal server error." });
+            res.status(500).json({ error: "Internal server error." });
+            return;
         }
     },
 
-    async getProfile(req: Request, res: Response) {
-        const userId = req.user?.id;
+    async getProfile(req: Request, res: Response): Promise<void> {
+        const userId = (req.user as CustomJwtPayload)?.id;
 
         if (!userId) {
-            return res.status(401).json({ error: "Unauthorized." });
+            res.status(401).json({ error: "Unauthorized." });
+            return;
         }
 
         try {
@@ -154,13 +161,15 @@ const userController = {
                 .where(eq(users.id, userId));
 
             if (user.length === 0) {
-                return res.status(404).json({ error: "User not found." });
+                res.status(404).json({ error: "User not found." });
+                return;
             }
 
             res.json(user[0]);
         } catch (error) {
             console.error("Error fetching profile:", error);
-            return res.status(500).json({ error: "Internal server error." });
+            res.status(500).json({ error: "Internal server error." });
+            return;
         }
     },
 };
