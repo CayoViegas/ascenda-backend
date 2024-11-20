@@ -10,7 +10,7 @@ export const authMiddleware = (
     const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
-        res.status(401).json({ message: "Authorization token is requires." });
+        res.status(401).json({ message: "Authorization token is required." });
         return;
     }
 
