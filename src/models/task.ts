@@ -4,7 +4,7 @@ import {
     varchar,
     boolean,
     serial,
-    point,
+    date,
 } from "drizzle-orm/pg-core";
 import { users } from "./user";
 
@@ -15,4 +15,5 @@ export const tasks = pgTable("tasks", {
     status: boolean("status").default(false), // false: pendente, true: feita
     points: integer("points").default(0),
     userId: integer("user_id").references(() => users.id),
+    date: date("date").notNull(),
 });
