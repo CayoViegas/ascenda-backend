@@ -7,11 +7,14 @@ import jwt from "jsonwebtoken";
 import { friends } from "../models/friend";
 
 const userController = {
-    async register(req: Request, res: Response) {
+    async register(req: Request, res: Response): Promise<void> {
         const { name, email, password } = req.body;
 
         if (!name || !email || !password) {
-            return res.status(400).json({ error: "Name, email and password are required." });
+            res.status(400).json({
+                error: "Name, email and password are required.",
+            });
+            return;
         }
 
         try {
@@ -21,7 +24,8 @@ const userController = {
                 .where(eq(users.email, email));
 
             if (existingUser.length > 0) {
-                return res.status(400).json({ error: "Email already exists." });
+                res.status(400).json({ error: "Email already exists." });
+                return;
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
@@ -31,19 +35,21 @@ const userController = {
                 email,
                 password: hashedPassword,
             });
-
-            return res.status(201).json({ message: "User registered successfully." });
+            res.status(201).json({ message: "User registered successfully." });
+            return;
         } catch (error) {
-            console.error('Error during registration:', error);
-            return res.status(500).json({ error: "Internal server error." });
+            console.error("Error during registration:", error);
+            res.status(500).json({ error: "Internal server error." });
+            return;
         }
     },
 
-    async login(req: Request, res: Response) {
+    async login(req: Request, res: Response): Promise<void> {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res.status(400).json({ error: "Email and password are required." });
+            res.status(400).json({ error: "Email and password are required." });
+            return;
         }
 
         try {
@@ -53,22 +59,32 @@ const userController = {
                 .where(eq(users.email, email));
 
             if (user.length === 0) {
-                return res.status(404).json({ error: "User not found." });
+                res.status(404).json({ error: "User not found." });
+                return;
             }
 
-            const isPasswordValid = await bcrypt.compare(password, user[0].password);
+            const isPasswordValid = await bcrypt.compare(
+                password,
+                user[0].password
+            );
             if (!isPasswordValid) {
-                return res.status(401).json({ error: "Invalid credentials." });
+                res.status(401).json({ error: "Invalid credentials." });
+                return;
             }
 
-            const token = jwt.sign({ id: user[0].id }, process.env.JWT_SECRET as string, {
-                expiresIn: "7d",
-            });
+            const token = jwt.sign(
+                { id: user[0].id },
+                process.env.JWT_SECRET as string,
+                {
+                    expiresIn: "7d",
+                }
+            );
 
             res.json({ message: "Login successful.", token });
         } catch (error) {
-            console.error('Error during login:', error);
-            return res.status(500).json({ error: "Internal server error." });
+            console.error("Error during login:", error);
+            res.status(500).json({ error: "Internal server error." });
+            return;
         }
     },
 
@@ -98,7 +114,10 @@ const userController = {
                 .select()
                 .from(friends)
                 .where(
-                    and(eq(friends.userId, userId), eq(friends.friendId, friendId))
+                    and(
+                        eq(friends.userId, userId),
+                        eq(friends.friendId, friendId)
+                    )
                 );
 
             if (existingFriendship.length > 0) {
@@ -112,10 +131,38 @@ const userController = {
 
             res.json({ message: "Friend added successfully." });
         } catch (error) {
-            console.error('Error adding friend:', error);
+            console.error("Error adding friend:", error);
             return res.status(500).json({ error: "Internal server error." });
         }
-    }
+    },
+
+    async getProfile(req: Request, res: Response) {
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ error: "Unauthorized." });
+        }
+
+        try {
+            const user = await db
+                .select({
+                    id: users.id,
+                    name: users.name,
+                    email: users.email,
+                })
+                .from(users)
+                .where(eq(users.id, userId));
+
+            if (user.length === 0) {
+                return res.status(404).json({ error: "User not found." });
+            }
+
+            res.json(user[0]);
+        } catch (error) {
+            console.error("Error fetching profile:", error);
+            return res.status(500).json({ error: "Internal server error." });
+        }
+    },
 };
 
 export default userController;

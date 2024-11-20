@@ -1,6 +1,6 @@
-import { CustomJwtPayload } from './customJwtPayload';
+import { CustomJwtPayload } from "./customJwtPayload";
 
-declare module 'express-serve-static-core' {
+declare module "express-serve-static-core" {
     interface Request {
         user?: CustomJwtPayload;
     }
