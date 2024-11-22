@@ -1,0 +1,12 @@
+services:
+ api:
+  build:
+   context: .
+   target: build
+   dockerfile: Dockerfile
+  volumes:
+   - ./:/app
+   - /app/node_modules
+  ports:
+   - 4000:4000
+  command: npm run dev
