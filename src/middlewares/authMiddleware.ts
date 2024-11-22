@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { CustomJwtPayload } from "../types/customJwtPayload";
+import { AuthenticatedRequest } from "../types/authenticatedRequest";
 
 export const authMiddleware = (
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
 ): void => {
