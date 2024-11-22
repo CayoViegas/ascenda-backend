@@ -5,7 +5,7 @@ import { users } from "../models/user";
 import { and, eq } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 import { friends } from "../models/friend";
-import { CustomJwtPayload } from "../types/customJwtPayload";
+import { AuthenticatedRequest } from "../types/authenticatedRequest";
 
 const userController = {
     async register(req: Request, res: Response): Promise<void> {
@@ -89,9 +89,9 @@ const userController = {
         }
     },
 
-    async addFriend(req: Request, res: Response): Promise<void> {
+    async addFriend(req: AuthenticatedRequest, res: Response): Promise<void> {
         const { friendId } = req.body;
-        const userId = (req.user as CustomJwtPayload)?.id;
+        const userId = req.user?.id;
 
         if (!friendId) {
             res.status(400).json({ error: "Friend ID is required." });
@@ -142,8 +142,8 @@ const userController = {
         }
     },
 
-    async getProfile(req: Request, res: Response): Promise<void> {
-        const userId = (req.user as CustomJwtPayload)?.id;
+    async getProfile(req: AuthenticatedRequest, res: Response): Promise<void> {
+        const userId = req.user?.id;
 
         if (!userId) {
             res.status(401).json({ error: "Unauthorized." });

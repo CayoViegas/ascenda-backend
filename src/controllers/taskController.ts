@@ -1,13 +1,14 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { db } from "../config/database";
 import { tasks } from "../models/task";
 import { and, eq } from "drizzle-orm";
 import { CustomJwtPayload } from "../types/customJwtPayload";
+import { AuthenticatedRequest } from "../types/authenticatedRequest";
 
 const taskController = {
-    async addTask(req: Request, res: Response): Promise<void> {
+    async addTask(req: AuthenticatedRequest, res: Response): Promise<void> {
         const { title, priority } = req.body;
-        const userId = (req.user as CustomJwtPayload)?.id;
+        const userId = req.user?.id;
 
         if (!userId) {
             res.status(401).json({ message: "Unauthorized." });
@@ -38,8 +39,8 @@ const taskController = {
         }
     },
 
-    async getTasks(req: Request, res: Response): Promise<void> {
-        const userId = (req.user as CustomJwtPayload)?.id;
+    async getTasks(req: AuthenticatedRequest, res: Response): Promise<void> {
+        const userId = req.user?.id;
 
         if (!userId) {
             res.status(401).json({ message: "Unauthorized." });
@@ -61,9 +62,12 @@ const taskController = {
         }
     },
 
-    async completeTask(req: Request, res: Response): Promise<void> {
+    async completeTask(
+        req: AuthenticatedRequest,
+        res: Response
+    ): Promise<void> {
         const { taskId } = req.body;
-        const userId = (req.user as CustomJwtPayload)?.id;
+        const userId = req.user?.id;
 
         if (!userId) {
             res.status(401).json({ message: "Unauthorized." });
@@ -105,8 +109,11 @@ const taskController = {
         }
     },
 
-    async getTaskHistory(req: Request, res: Response): Promise<void> {
-        const userId = (req.user as CustomJwtPayload)?.id;
+    async getTaskHistory(
+        req: AuthenticatedRequest,
+        res: Response
+    ): Promise<void> {
+        const userId = req.user?.id;
 
         if (!userId) {
             res.status(401).json({ message: "Unauthorized." });
