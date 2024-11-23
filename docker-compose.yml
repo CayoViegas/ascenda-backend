@@ -9,7 +9,7 @@ services:
    - /app/node_modules
   ports:
    - 3000:3000
-  command: npm run dev & npm run create-tables
+  command: sh -c "npm run create-tables && npm run dev"
 
   depends_on:
    - db
@@ -34,7 +34,7 @@ services:
    - db-data:/var/lib/postgresql/data
 
   healthcheck:
-   test: ["CMD-SHELL", "pg_isready -U postgres -d ascenda"]
+   test: ["CMD-SHELL", "pg_isready -U postgres -d ascenda-db"]
    interval: 5s
    timeout: 5s
    retries: 5
