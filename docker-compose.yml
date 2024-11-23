@@ -10,3 +10,42 @@ services:
   ports:
    - 4000:4000
   command: npm run dev
+
+  depends_on:
+   - db
+  environment:
+   - DB_HOST=localhost
+   - DB_PORT=5432
+   - DB_NAME=ascenda-db
+   - DB_USER=postgres
+   - DB_PASSWORD=1234
+   - DB_DIALECT=postgres
+
+ db:
+  image: postgres:latest
+  ports:
+   - 5432:5432
+  environment:
+   - POSTGRES_DB=ascenda-db
+   - POSTGRES_USER=postgres
+   - POSTGRES_PASSWORD=1234
+
+  volumes:
+   - db-data:/var/lib/postgresql/data
+
+  healthcheck:
+   test: ["CMD-SHELL", "pg_isready -U postgres -d ascenda"]
+   interval: 5s
+   timeout: 5s
+   retries: 5
+  
+ pgadmin:
+   image: dpage/pgadmin4
+   ports:
+    - 5050:80
+   environment:
+    - PGADMIN_DEFAULT_EMAIL=postgres
+    - PGADMIN_DEFAULT_PASSWORD=1234
+
+volumes:
+ db-data: {}
