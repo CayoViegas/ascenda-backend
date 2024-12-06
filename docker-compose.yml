@@ -1,12 +1,62 @@
+version: "3.9"
+
 services:
- api:
-  build:
-   context: .
-   target: build
-   dockerfile: Dockerfile
-  volumes:
-   - ./:/app
-   - /app/node_modules
-  ports:
-   - 3000:3000
-  command: npm run dev
+    api:
+        build:
+            context: .
+            target: build
+            dockerfile: Dockerfile
+        volumes:
+            - ./:/app
+            - /app/node_modules
+        ports:
+            - "3000:3000"
+        command: >
+            sh -c "npm run create-tables && npm run dev"
+        depends_on:
+            - db
+        environment:
+            - DB_HOST=ascenda-postgres
+            - DB_PORT=5432
+            - DB_NAME=ascenda
+            - DB_USER=postgres
+            - DB_PASSWORD=postgres
+            - DB_DIALECT=postgres
+        networks:
+            - ascenda
+
+    db:
+        image: postgres:latest
+        container_name: ascenda-postgres
+        ports:
+            - "5432:5432"
+        environment:
+            - POSTGRES_DB=ascenda
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+        volumes:
+            - db-data:/var/lib/postgresql/data
+        networks:
+            - ascenda
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres -d ascenda"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
+    pgadmin:
+        image: dpage/pgadmin4
+        ports:
+            - "5050:80"
+        environment:
+            - PGADMIN_DEFAULT_EMAIL=postgres@postgres.com
+            - PGADMIN_DEFAULT_PASSWORD=postgres
+        networks:
+            - ascenda
+
+networks:
+    ascenda:
+        driver: bridge
+
+volumes:
+    db-data: {}
